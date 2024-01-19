@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  web:
+    build: ./datafetcher
+    container_name: datafetcher
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./datafetcher:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    build: ./adminsys/postgres
+    container_name: postgres
+    ports:
+      - "5432:5432"
+
+  elasticsearch:
+    build: ./adminsys/elasticsearch
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      discovery.type: single-node
+
+  kibana:
+    build: ./adminsys/kibana
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+
+  agent:
+    build: ./datafetcher/agents
+    container_name: agent
+    depends_on:
+      - web
+      - db
+      - elasticsearch
+      - kibana

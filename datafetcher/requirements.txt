@@ -1,0 +1,6 @@
+Django==3.2.9
+psycopg2-binary
+elasticsearch==7.15.1
+drf-yasg
+djangorestframework
+python-gnupg
