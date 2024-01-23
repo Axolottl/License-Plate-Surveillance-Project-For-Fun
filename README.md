@@ -24,7 +24,12 @@ cd Projet-Surveillance-Plaques
 npm install
 ```
 
-2. **Intégration avec la Plateforme de Surveillance**: Intégrez le boîtier avec la plateforme en le connectant à votre internet.
+2. **Lancer la Plateforme de Surveillance**: Lancez la plateforme de surveillance sur votre ordinateur.
+
+```bash
+cd Projet-Surveillance-Plaques
+docker-compose up
+```
 
 ## 🤝 Pourquoi Choisir Notre Solution
 
