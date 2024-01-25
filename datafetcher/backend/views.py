@@ -14,6 +14,16 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 import json
+from django.core import serializers
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from backend.models import MapData
+
+from django.shortcuts import render
+
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 
 header_param = openapi.Parameter('local',openapi.IN_HEADER,description="local header param", type=openapi.IN_HEADER)
 
@@ -26,9 +36,36 @@ class MapDataAPIView(APIView):
     """
     @swagger_auto_schema(tags=['MapData'])
     def get(self, request):
-        batch_size = request.GET.get('batch_size', 100)
-        start_index = request.GET.get('start_index', 1)
-        return JsonResponse({'message': f'GET request for map, data {data_id}, batch_size {batch_size}, start_index {start_index}'})
+        # curl -X 'GET' \
+        #    'http://127.0.0.1:8000/api/map/data/?batch_size=1&start_index=1' \
+        #    -H 'accept: application/json' \
+        #    -H 'X-CSRFToken: myAw33Hqn92zF0uwwTsousm2dgvmo13xU9Xi7UHAM91XQ1ThUetUOyiCLEbmGk3r' \
+        #    -H 'Authorization: Token 6cc29b202e71e59885dd72740539435761a47323'
+        
+        batch_size = request.GET.get('batch_size', 100)  # get the batch size from the query parameters, default to 10
+        start_index = request.GET.get('start_index', 1)  # get the start index from the query parameters, default to 1
+
+        map_data = MapData.objects.all().order_by('id')  # get all map data
+        paginator = Paginator(map_data, batch_size)  # create a Paginator object
+
+        try:
+            map_data_page = paginator.page(start_index)  # get the page of map data
+        except (EmptyPage, PageNotAnInteger):
+            map_data_page = paginator.page(paginator.num_pages)  # if the page is not valid, return the last page
+
+        map_data_json = serializers.serialize('json', map_data_page.object_list)  # serialize the data to JSON
+        map_data_python = json.loads(map_data_json)
+
+        response_data = {
+            'current_page': map_data_page.number,
+            'total_pages': paginator.num_pages,
+            'batch_size': batch_size,
+            'start_index': start_index,
+            'map_data': map_data_python
+        }
+
+        return JsonResponse(f'GET request for map, {response_data}', safe=False)  # return the data as a JSON response
+
 
 class UserAPIView(APIView):
     """
@@ -105,6 +142,8 @@ class AuthenticateAPIView(APIView):
     """
         API endpoint that allows users to be authenticated.
     """
+    permission_classes = [AllowAny]
+
     @swagger_auto_schema(tags=['Authenticate'])
     def post(self, request):
         """
@@ -121,17 +160,16 @@ class AuthenticateAPIView(APIView):
                 if user is not None:
                     login(request, user)
 
-                    access_token = generate_access_token(username)
+                    token, created = Token.objects.get_or_create(user=user)
 
                     data_to_send = {
                         'user': username,
                         'auth_timestamp': datetime.now(),
                     }
                     send_to_elasticsearch(request=request, index='authentication_history', data=data_to_send)
-                    return JsonResponse({'access_token': access_token}, status=200)
+                    return JsonResponse({'token': token.key}, status=200)
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'Invalid JSON format in the request body'}, status=400)
-
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 class AgentKeysAPIView(APIView):
@@ -170,6 +208,8 @@ class BackendAPIView(APIView):
     """
         API endpoint that allows users to be viewed or edited.
     """
+    permission_classes = [AllowAny]
+
     @api_view(['GET'])
     @csrf_exempt
     @swagger_auto_schema(tags=['API'])
@@ -191,3 +231,10 @@ class BackendAPIView(APIView):
             payload = {'status': 'Error'}
 
         return Response({"detail": payload}, status_code)
+
+
+
+def map_view(request):
+    map_data = MapData.objects.all().order_by('id')
+    map_data_list = list(map_data.values('id', 'latitude', 'longitude'))  # convert queryset to list of dicts
+    return render(request, 'map.html', {'map_data': json.dumps(map_data_list)})  # convert list to JSON

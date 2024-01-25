@@ -6,6 +6,8 @@ from drf_yasg import openapi
 from django.conf.urls import url
 from django.urls import path
 
+from .views import map_view
+
 schema_view = get_schema_view(
    openapi.Info(
       title="API",
@@ -20,6 +22,9 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+# MAP
+    path('map/', map_view, name='map'),
+
 # API
    # GET fetch a list of the available elements in the API
    path('api/', BackendAPIView.api, name='api'),
@@ -40,7 +45,7 @@ urlpatterns = [
    # GET Fetch all datas related to the user
    path('api/users/<int:user_id>/data', DatasAPIView.as_view(), name='get_platform_data_no_data_id'),
 
-# @TODO: Add the post process that isn't through REST
+# @TODO: Add the post process that isn't through REST, RGPC could be the way to go
 
 # Map Data
    # GET Retrieve data for displaying elements on the map
