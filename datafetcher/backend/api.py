@@ -1,7 +1,5 @@
-from django.urls import get_resolver
 import backend.urls as urls
 from datafetcher.settings import HOST_NAME
-import json
 
 def get_all_api_endpoints():
     """

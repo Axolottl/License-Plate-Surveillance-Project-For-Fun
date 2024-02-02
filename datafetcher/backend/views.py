@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 import json
 from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from backend.models import MapData
+from backend.models import MapData, Data
 
 from django.shortcuts import render
 
@@ -93,6 +93,7 @@ class DatasAPIView(APIView):
     """
         API endpoint that allows datas to be viewed or edited.
     """
+    permission_classes = [AllowAny]
     @swagger_auto_schema(tags=['Data'])
     def get(self, request, user_id, data_id=None):
         """
@@ -101,17 +102,53 @@ class DatasAPIView(APIView):
             - batch_size: the number of elements to fetch
             - start_index: the index of the first element to fetch
         """
-        batch_size = request.GET.get('batch_size', 100)
-        start_index = request.GET.get('start_index', 1)
-        return JsonResponse({'message': f'GET request for user {user_id}, data {data_id}, batch_size {batch_size}, start_index {start_index}'})
-        pass
+        batch_size = request.GET.get('batch_size', 100)  # get the batch size from the query parameters, default to 10
+        start_index = request.GET.get('start_index', 1)  # get the start index from the query parameters, default to 1
+
+        if data_id is not None:
+            data = Data.objects.filter(id=data_id)
+            if data.exists():
+                data_json = serializers.serialize('json', data)
+                data_python = json.loads(data_json)
+                return JsonResponse(data_python, safe=False)
+            else:
+                return JsonResponse({'error': 'Data not found'}, status=404)
+        else:
+            data = Data.objects.all().order_by('id')  # get all map data
+            paginator = Paginator(data, batch_size)  # create a Paginator object
+
+            try:
+                data_page = paginator.page(start_index)  # get the page of map data
+            except (EmptyPage, PageNotAnInteger):
+                data_page = paginator.page(paginator.num_pages)  # if the page is not valid, return the last page
+
+            map_data_json = serializers.serialize('json', data_page.object_list)  # serialize the data to JSON
+            map_data_python = json.loads(map_data_json)
+
+            response_data = {
+                'current_page': data_page.number,
+                'total_pages': paginator.num_pages,
+                'batch_size': batch_size,
+                'start_index': start_index,
+                'map_data': map_data_python
+            }
+
+            return JsonResponse(f'GET request for map, {response_data}', safe=False)  # return the data as a JSON response
 
     @swagger_auto_schema(tags=['Data'])
-    def delete(self, request, user_id, data_id):
+    def delete(self, request, user_id, data_id=None):
         """
             DELETE Delete data related to the user
         """
-        pass
+        if user_id is not None and data_id is not None:
+            data = Data.objects.filter(id=data_id)
+            if data.exists():
+                data.delete()
+        elif data_id is None:
+            for data in Data.objects.filter(user=user_id):
+                if data.exists():
+                    data.delete()
+        return JsonResponse(data={},status=204)
 
 class AgentAPIView(APIView):
     """
@@ -210,27 +247,10 @@ class BackendAPIView(APIView):
     """
     permission_classes = [AllowAny]
 
-    @api_view(['GET'])
-    @csrf_exempt
     @swagger_auto_schema(tags=['API'])
-    def api(request):
+    def get(self, request):
         api_endpoints = get_all_api_endpoints()
-        return Response(api_endpoints, status=200)
-
-    @api_view(['GET'])
-    @csrf_exempt
-    @swagger_auto_schema(tags=['API'])
-    def ping_view(request):
-        application_status = check_application_status()
-
-        if application_status:
-            status_code = 200
-            payload = {'status': 'OK'}
-        else:
-            status_code = 500
-            payload = {'status': 'Error'}
-
-        return Response({"detail": payload}, status_code)
+        return JsonResponse(api_endpoints, status=200)
 
 
 

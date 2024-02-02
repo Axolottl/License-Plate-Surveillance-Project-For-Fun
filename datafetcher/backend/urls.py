@@ -27,9 +27,7 @@ urlpatterns = [
 
 # API
    # GET fetch a list of the available elements in the API
-   path('api/', BackendAPIView.api, name='api'),
-   # GET ping the API service
-   path('api/ping/', BackendAPIView.ping_view, name='ping'),
+   path('api/', BackendAPIView.as_view(), name='api'),
 
 # User Authentication
    # POST Authenticate the user and generate an access token
