@@ -1,56 +1,125 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-import json
 from rest_framework import status
 from django.contrib.auth.models import User
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+from backend.models import Data
 
-class APITests(TestCase):
+class MapDataAPITestCase(TestCase):
     def setUp(self):
-        # Create a test user
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client = Client()
 
-    # API
-    def test_api_endpoint(self):
-        url = reverse('api')
-        response = self.client.get(url)
+    def test_get_map_data(self):
+        response = self.client.get(reverse('map_data_api'))
+        self.assertEqual(response.status_code, 200)
+
+class UserAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_get_user(self):
+        response = self.client.get(reverse('user_api', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_put_user(self):
+        response = self.client.put(reverse('user_api', kwargs={'user_id': self.user.id}), {'username': 'newusername', 'email': 'newemail@example.com'})
+        self.assertEqual(response.status_code, 200)
+
+class DatasAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.data = Data.objects.create(user=self.user)
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_get_data(self):
+        response = self.client.get(reverse('datas_api', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_delete_data(self):
+        response = self.client.delete(reverse('datas_api', kwargs={'user_id': self.user.id, 'data_id': self.data.id}))
+        self.assertEqual(response.status_code, 204)
+
+class AgentAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_get_agent(self):
+        response = self.client.get(reverse('agent_api', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_put_agent(self):
+        response = self.client.put(reverse('agent_api', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, 200)
+
+class AuthenticateAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+
+    def test_post_authenticate(self):
+        response = self.client.post(reverse('authenticate_api'), {'username': 'testuser', 'password': '12345'})
+        self.assertEqual(response.status_code, 200)
+
+class AgentKeysAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_get_agent_keys(self):
+        response = self.client.get(reverse('agent_keys_api', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_put_agent_keys(self):
+        response = self.client.put(reverse('agent_keys_api', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, 200)
+
+class BackendAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_get_backend(self):
+        response = self.client.get(reverse('backend_api'))
+        self.assertEqual(response.status_code, 200)
+
+class UserRegistrationAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_post_user_registration(self):
+        response = self.client.post(reverse('user_registration_api'), {'username': 'testuser', 'password': '12345'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+class UserLoginAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+
+    def test_post_user_login(self):
+        response = self.client.post(reverse('user_login_api'), {'username': 'testuser', 'password': '12345'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_ping_view(self):
-        url = reverse('ping')
-        response = self.client.get(url)
+class UserLogoutAPITestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+
+    def test_post_user_logout(self):
+        self.client.login(username='testuser', password='12345')
+        response = self.client.post(reverse('user_logout_api'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # User Authentication
-    def test_authenticate_user(self):
-        url = reverse('authenticate_user')
-        data = {'username': 'testuser', 'password': 'testpassword'}
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access_token', json.loads(response.content))
-
-    # User Profile
-    def test_get_user_profile(self):
-        url = reverse('get_user_profile')
-        self.client.force_login(self.user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_update_user_profile(self):
-        url = reverse('update_user_profile')
-        self.client.force_login(self.user)
-        data = {'first_name': 'New', 'last_name': 'Name'}
-        response = self.client.put(url, json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    # Platform Data
-
-    # Map Data
-
-    # Client Agent
-
-    # Manage Keys
-
+class SwaggerAPITestCase(TestCase):
     # Swagger and Redoc documentation
     def test_swagger_json(self):
         url = reverse('schema-json')
