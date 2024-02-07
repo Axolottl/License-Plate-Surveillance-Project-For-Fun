@@ -1,7 +1,12 @@
-from authentification.views import verify_signature, get_server_public_key, receive_initial_public_key
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
-from .views import BackendAPIView, UserAPIView, DatasAPIView, MapDataAPIView, AgentAPIView, AuthenticateAPIView, AgentKeysAPIView
+from backend.api.backend import BackendAPIView
+from backend.api.user import UserAPIView
+from backend.api.data import DatasAPIView
+from backend.api.map import MapDataAPIView
+from backend.api.authenticate import AuthenticateAPIView
+from backend.api.agent_keys import AgentKeysAPIView
+from backend.api.agent import AgentAPIView
 from drf_yasg import openapi
 from django.conf.urls import url
 from django.urls import path
@@ -61,11 +66,7 @@ urlpatterns = [
    # GET Retrieve a list of keys associated with the client's agent, POST a new key to the platform
    path('api/users/<int:user_id>/agents/<int:agent_id>/keys', AgentKeysAPIView.as_view(), name='get_post_agent_keys'),
 
-# Swagger and Redoc documentation
-   # GET Retrieve the schema of the swagger
-   url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+# Swagger documentation
    # GET Retrieve the swagger page that lists all the REST api endpoints
-   path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-   # GET Retrieve the redoc page that documents all the REST api endpoints
-   path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+   path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema_swagger_ui'),
 ]

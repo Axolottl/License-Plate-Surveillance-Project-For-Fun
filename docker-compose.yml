@@ -35,11 +35,11 @@ services:
     environment:
       ELASTICSEARCH_URL: http://elasticsearch:9200
 
-  agent:
-    build: ./datafetcher/agents
-    container_name: agent
-    depends_on:
-      - web
-      - db
-      - elasticsearch
-      - kibana
+  # agent:
+  #   build: ./datafetcher/agents
+  #   container_name: agent
+  #   depends_on:
+  #     - web
+  #     - db
+  #     - elasticsearch
+  #     - kibana
