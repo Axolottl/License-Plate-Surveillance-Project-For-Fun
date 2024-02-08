@@ -3,9 +3,13 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
-from django.contrib.auth.models import User
+from backend.models import Data
+from backend.models import AgentKeys
+from backend.models import AgentData
+from backend.models import MapData
 from rest_framework.authtoken.models import Token
 from backend.models import Data
+
 
 class MapDataAPITestCase(TestCase):
     def setUp(self):
@@ -70,20 +74,36 @@ class AuthenticateAPITestCase(TestCase):
         response = self.client.post(reverse('authenticate_api'), {'username': 'testuser', 'password': '12345'})
         self.assertEqual(response.status_code, 200)
 
-class AgentKeysAPITestCase(TestCase):
+class AgentKeysAPIViewTestCase(APITestCase):
     def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', password='12345')
-        self.token = Token.objects.create(user=self.user)
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.agent_key = AgentKeys.objects.create(agent="test", key='testkey')
+        self.client.login(username='testuser', password='testpass')
 
-    def test_get_agent_keys(self):
-        response = self.client.get(reverse('agent_keys_api', kwargs={'user_id': self.user.id}))
-        self.assertEqual(response.status_code, 200)
+    def test_get(self):
+        response = self.client.get(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'key': 'testkey'})
 
-    def test_put_agent_keys(self):
-        response = self.client.put(reverse('agent_keys_api', kwargs={'user_id': self.user.id}))
-        self.assertEqual(response.status_code, 200)
+    def test_put(self):
+        response = self.client.put(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}), {'key': 'newkey'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'message': 'Agent key updated successfully'})
+        self.agent_key.refresh_from_db()
+        self.assertEqual(self.agent_key.key, 'newkey')
+
+    def test_delete(self):
+        response = self.client.delete(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'message': 'Agent key deleted successfully'})
+        with self.assertRaises(AgentKeys.DoesNotExist):
+            self.agent_key.refresh_from_db()
+
+    def test_post(self):
+        response = self.client.post(reverse('agentkeys-list', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id}), {'key': 'newkey'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, {'message': 'Agent key created successfully'})
+        self.assertTrue(AgentKeys.objects.filter(agent=self.agent, key='newkey').exists())
 
 class BackendAPITestCase(TestCase):
     def setUp(self):

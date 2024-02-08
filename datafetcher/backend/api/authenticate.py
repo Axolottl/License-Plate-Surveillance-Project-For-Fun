@@ -11,6 +11,7 @@ import json
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 
+
 class AuthenticateAPIView(APIView):
     """
         API endpoint that allows users to be authenticated.

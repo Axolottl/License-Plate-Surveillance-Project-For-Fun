@@ -39,7 +39,7 @@ urlpatterns = [
    path('api/authenticate/', AuthenticateAPIView.as_view(), name='authenticate_user'),
 
 # User
-   # GET Retrieve the user information , PUT Update the user information
+   # GET Retrieve the user information , PUT Update the user information, POST Create a new user
    path('api/users/<int:user_id>', UserAPIView.as_view(), name='get_put_user_profile'),
 
 # User Data
