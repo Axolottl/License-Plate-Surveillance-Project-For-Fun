@@ -46,4 +46,4 @@ class MapDataAPIView(APIView):
             'map_data': map_data_python
         }
 
-        return JsonResponse(f'GET request for map, {response_data}', safe=False)  # return the data as a JSON response
+        return JsonResponse({'message': 'GET request for map', 'content': response_data}, safe=False)  # return the data as a JSON response

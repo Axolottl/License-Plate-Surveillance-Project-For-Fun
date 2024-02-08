@@ -15,6 +15,7 @@ class Data(models.Model):
         return self.name
 
 class MapData(models.Model):
+    id = models.AutoField(primary_key=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
 

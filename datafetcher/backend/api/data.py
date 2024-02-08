@@ -7,9 +7,9 @@ from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from backend.models import Data
 
-class DatasAPIView(APIView):
+class DataAPIView(APIView):
     """
-        API endpoint that allows datas to be viewed or edited.
+        API endpoint that allows data to be viewed or edited.
     """
     @swagger_auto_schema(tags=['Data'])
     def get(self, request, user_id, data_id=None):

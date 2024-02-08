@@ -4,6 +4,8 @@
 
 Le projet de Surveillance de Plaques d'Immatriculation offre une expérience de surveillance personnalisée pour les citoyens, renforçant leur sécurité sur la route et contribuant à une sécurité publique plus efficace.
 
+![Diagram of current architecture](https://github.com/Axolottl/License-Plate-Surveillance-Project-For-Fun/assets/44032887/4983eecb-969a-4bbd-b57e-ff4f76dd41bf)
+
 ## ✨ Points Forts
 
 - **Live Monitoring Asynchrone**: Notre système utilise des caméras de surveillance équipées de logiciels de reconnaissance pour une surveillance en temps réel des plaques d'immatriculation.

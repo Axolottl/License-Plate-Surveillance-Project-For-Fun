@@ -2,7 +2,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from backend.api.backend import BackendAPIView
 from backend.api.user import UserAPIView
-from backend.api.data import DatasAPIView
+from backend.api.data import DataAPIView
 from backend.api.map import MapDataAPIView
 from backend.api.authenticate import AuthenticateAPIView
 from backend.api.agent_keys import AgentKeysAPIView
@@ -40,13 +40,13 @@ urlpatterns = [
 
 # User
    # GET Retrieve the user information , PUT Update the user information, POST Create a new user
-   path('api/users/<int:user_id>', UserAPIView.as_view(), name='get_put_user_profile'),
+   path('api/users/<int:user_id>', UserAPIView.as_view(), name='get_put_post_user_profile'),
 
 # User Data
    # GET Fetch data related to the user , DELETE Delete data related to the
-   path('api/users/<int:user_id>/data/<int:data_id>', DatasAPIView.as_view(), name='get_delete_platform_data'),
-   # GET Fetch all datas related to the user
-   path('api/users/<int:user_id>/data', DatasAPIView.as_view(), name='get_platform_data_no_data_id'),
+   path('api/users/<int:user_id>/data/<int:data_id>', DataAPIView.as_view(), name='get_delete_platform_data'),
+   # GET Fetch all data related to the user
+   path('api/users/<int:user_id>/data', DataAPIView.as_view(), name='get_platform_data_no_data_id'),
 
 # @TODO: Add the post process that isn't through REST, RGPC could be the way to go
 
@@ -57,7 +57,7 @@ urlpatterns = [
 # Client Agent
    # GET Retrieve information about the client's agent
    path('api/users/<int:user_id>/agents/<int:agent_id>', AgentAPIView.as_view(), name='get_put_client_agent'),
-   #
+   # GET Retrieve a list of agents associated with the client, POST a new agent to the platform
    path('api/users/<int:user_id>/agents', AgentAPIView.as_view(), name='get_post_client_agent_no_agent_id'),
 
 # Manage Keys

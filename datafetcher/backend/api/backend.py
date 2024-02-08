@@ -14,4 +14,4 @@ class BackendAPIView(APIView):
     @swagger_auto_schema(tags=['API'])
     def get(self, request):
         api_endpoints = get_all_api_endpoints()
-        return JsonResponse(api_endpoints, status=200)
+        return JsonResponse({'message': 'GET request for backend', 'content': api_endpoints}, status=200)
