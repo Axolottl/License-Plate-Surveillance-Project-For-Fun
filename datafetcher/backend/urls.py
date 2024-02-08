@@ -47,8 +47,7 @@ urlpatterns = [
    path('api/users/<int:user_id>/data/<int:data_id>', DataAPIView.as_view(), name='get_delete_platform_data'),
    # GET Fetch all data related to the user
    path('api/users/<int:user_id>/data', DataAPIView.as_view(), name='get_platform_data_no_data_id'),
-
-# @TODO: Add the post process that isn't through REST, RGPC could be the way to go
+   # @TODO: Add the post process that the agents will do, that isn't through REST, RGPC could be the way to go
 
 # Map Data
    # GET Retrieve data for displaying elements on the map

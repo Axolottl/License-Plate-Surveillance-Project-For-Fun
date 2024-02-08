@@ -112,11 +112,18 @@ class MapDataAPIViewTestCase(APITestCase):
 #         self.user = User.objects.create_user(username='testuser', password='testpass')
 #         self.agent_key = AgentKeys.objects.create(agent="test", key='testkey')
 #         self.client.login(username='testuser', password='testpass')
+#         self.token = Token.objects.create(user=self.user)
+#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
 #     def test_get(self):
-#         response = self.client.get(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}))
+#         response = self.client.get(reverse('get_put_delete_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent_key.agent, 'key_id': self.agent_key.key}))
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data, {'key': 'testkey'})
+
+    # def test_get_list(self):
+    #     response = self.client.get(reverse('get_post_agent_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent_key.agent}))
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(response.data, [{'key': 'testkey'}])
 
 #     def test_put(self):
 #         response = self.client.put(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}), {'key': 'newkey'})
