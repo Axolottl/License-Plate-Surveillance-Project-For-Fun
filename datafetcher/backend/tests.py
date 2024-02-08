@@ -15,6 +15,8 @@ import json
 
 class MapDataAPIViewTestCase(APITestCase):
     def setUp(self):
+        # add further test for the input values to be "input" and the expected output, what happenes when am not 
+        # logged or no tthe correct person adn wrong and right data
         self.map_data = [MapData.objects.create(latitude=i, longitude=i+1) for i in range(200)]
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.token = Token.objects.create(user=self.user)
@@ -31,23 +33,25 @@ class MapDataAPIViewTestCase(APITestCase):
         self.assertEqual(len(response_content['content']['map_data']), 50)
         self.assertEqual(response_content['content']['map_data'][0]['fields']['latitude'], 50.0)
 
-# class UserAPIViewTestCase(APITestCase):
-#     def setUp(self):
-#         self.user = User.objects.create_user(username='testuser', password='testpass', email='testuser@example.com')
-#         self.client.login(username='testuser', password='testpass')
+class UserAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass', email='testuser@example.com')
+        self.client.login(username='testuser', password='testpass')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
-#     def test_get(self):
-#         response = self.client.get(reverse('get_put_post_user_profile', kwargs={'user_id': self.user.id}))
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(response.data, {'username': 'testuser', 'email': 'testuser@example.com'})
+    def test_get(self):
+        response = self.client.get(reverse('get_put_post_user_profile', kwargs={'user_id': self.user.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'username': 'testuser', 'email': 'testuser@example.com'})
 
-#     def test_put(self):
-#         response = self.client.put(reverse('get_put_post_user_profile', kwargs={'user_id': self.user.id}), {'username': 'newuser', 'email': 'newuser@example.com'})
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(response.data, {'message': 'User profile updated successfully'})
-#         self.user.refresh_from_db()
-#         self.assertEqual(self.user.username, 'newuser')
-#         self.assertEqual(self.user.email, 'newuser@example.com')
+    def test_put(self):
+        response = self.client.put(reverse('get_put_post_user_profile', kwargs={'user_id': self.user.id}), data={'username': 'testing', 'email': 'example@come.com'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'message': 'User profile updated successfully'})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, 'newuser')
+        self.assertEqual(self.user.email, 'newuser@example.com')
 
 #     def test_post(self):
 #         response = self.client.post(reverse('get_put_post_user_profile'), {'username': 'newuser', 'email': 'newuser@example.com'})
@@ -58,9 +62,11 @@ class MapDataAPIViewTestCase(APITestCase):
 # class DataAPIViewTestCase(APITestCase):
 #     def setUp(self):
 #         self.data = [Data.objects.create(name=f'test{i}') for i in range(200)]
+#         self.token = Token.objects.create(user=self.user)
+#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
 #     def test_get(self):
-#         response = self.client.get(reverse('data-list'), {'batch_size': 50, 'start_index': 2})
+#         response = self.client.get(reverse('get_delete_platform_data'), {'batch_size': 50, 'start_index': 2})
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data['current_page'], 2)
 #         self.assertEqual(response.data['total_pages'], 4)
@@ -70,13 +76,15 @@ class MapDataAPIViewTestCase(APITestCase):
 #         self.assertEqual(response.data['map_data'][0]['fields']['name'], 'test50')
 
 #     def test_delete(self):
-#         response = self.client.delete(reverse('data-detail', kwargs={'data_id': self.data[0].id}))
+#         response = self.client.delete(reverse('get_delete_platform_data', kwargs={'get_delete_platform_data': self.data[0].id}))
 #         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 #         self.assertFalse(Data.objects.filter(id=self.data[0].id).exists())
 
 # class AgentAPIViewTestCase(APITestCase):
 #     def setUp(self):
 #         self.agent_data = [AgentData.objects.create(agent=f'test{i}') for i in range(200)]
+#         self.token = Token.objects.create(user=self.user)
+#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
 #     def test_get(self):
 #         response = self.client.get(reverse('get_post_client_agent_no_agent_id'), {'batch_size': 50, 'start_index': 2})
@@ -94,7 +102,7 @@ class MapDataAPIViewTestCase(APITestCase):
 #         self.assertEqual(response.data['agent'][0]['fields']['name'], 'newname')
 
 #     def test_post(self):
-#         response = self.client.post(reverse('agent-list'), {'name': 'newagent'})
+#         response = self.client.post(reverse('get_put_client_agent'), {'name': 'newagent'})
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data['agent'][0]['fields']['name'], 'newagent')
 
@@ -102,6 +110,8 @@ class MapDataAPIViewTestCase(APITestCase):
 #     def setUp(self):
 #         self.client = APIClient()
 #         self.user = User.objects.create_user(username='testuser', password='12345')
+#         self.token = Token.objects.create(user=self.user)
+#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
 #     def test_post_authenticate(self):
 #         response = self.client.post(reverse('authenticate_api'), {'username': 'testuser', 'password': '12345'})
@@ -120,27 +130,27 @@ class MapDataAPIViewTestCase(APITestCase):
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data, {'key': 'testkey'})
 
-    # def test_get_list(self):
-    #     response = self.client.get(reverse('get_post_agent_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent_key.agent}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data, [{'key': 'testkey'}])
+#     def test_get_list(self):
+#         response = self.client.get(reverse('get_post_agent_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent_key.agent}))
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.assertEqual(response.data, [{'key': 'testkey'}])
 
 #     def test_put(self):
-#         response = self.client.put(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}), {'key': 'newkey'})
+#         response = self.client.put(reverse('get_put_delete_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}), {'key': 'newkey'})
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data, {'message': 'Agent key updated successfully'})
 #         self.agent_key.refresh_from_db()
 #         self.assertEqual(self.agent_key.key, 'newkey')
 
 #     def test_delete(self):
-#         response = self.client.delete(reverse('agentkeys-detail', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}))
+#         response = self.client.delete(reverse('get_put_delete_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id, 'key_id': self.agent_key.id}))
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data, {'message': 'Agent key deleted successfully'})
 #         with self.assertRaises(AgentKeys.DoesNotExist):
 #             self.agent_key.refresh_from_db()
 
 #     def test_post(self):
-#         response = self.client.post(reverse('agentkeys-list', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id}), {'key': 'newkey'})
+#         response = self.client.post(reverse('get_post_agent_keys', kwargs={'user_id': self.user.id, 'agent_id': self.agent.id}), {'key': 'newkey'})
 #         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 #         self.assertEqual(response.data, {'message': 'Agent key created successfully'})
 #         self.assertTrue(AgentKeys.objects.filter(agent=self.agent, key='newkey').exists())
